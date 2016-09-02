@@ -1,0 +1,6 @@
+**/.pyc
+!.gitignore
+.idea
+build
+dist
+sandbox.egg*

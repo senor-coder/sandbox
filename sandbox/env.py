@@ -28,8 +28,10 @@ def set_cpu_limit(limit):
     resource.setrlimit(resource.RLIMIT_CPU, (limit, limit))
 
 
-def set_as_limit(limit):
+def set_mem_limit(limit):
     limit = int(limit)
+    resource.setrlimit(resource.RLIMIT_DATA, (limit, limit))
+    resource.setrlimit(resource.RLIMIT_STACK, (limit, limit))
     resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
 
 
@@ -41,7 +43,7 @@ resource_mappings = {
     # CPU_LIMIT
     'cpu': set_cpu_limit,
     # ADDRESS SPACE LIMIT
-    'as': set_as_limit,
+    'mem': set_mem_limit,
 }
 
 

@@ -1,11 +1,13 @@
-import subprocess
-from subprocess import STDOUT
+from subprocess import Popen, PIPE
+from exceptions import *
 
 '''
     A class to configure a sandbox environment and run any executable in the constrained environment.
 '''
+
+
 class Sandbox:
-    def __init__(self, proc=None, file=None, cpu=None, a_space=None):
+    def __init__(self, proc=None, file=None, cpu=None, mem=None):
         """
         :param proc: Number of processes allowed
         :param file: Max number of files to be allowed
@@ -14,7 +16,7 @@ class Sandbox:
         """
         self.proc = proc
         self.file = file
-        self.a_space = a_space
+        self.mem = mem
         self.cpu = cpu
 
     def __get_proc_config(self):
@@ -23,9 +25,16 @@ class Sandbox:
     def __get_file_config(self):
         return 'file=' + str(self.file) if self.file is not None else None
 
+    def __get_mem_config(self):
+        return 'mem=' + str(self.mem) if self.file is not None else None
+
+    def __get_cpu_config(self):
+        return 'cpu=' + str(self.cpu) if self.file is not None else None
+
     '''
         Get the output of the executable by running in the sandbox environment.
     '''
+
     def exec_output(self, cmd):
         """
         :param cmd: Path to the executable
@@ -33,11 +42,24 @@ class Sandbox:
         """
         constraints = [
             self.__get_file_config(),
-            self.__get_proc_config()
+            self.__get_proc_config(),
+            self.__get_mem_config(),
+            self.__get_cpu_config()
         ]
+
         constraints = filter(lambda x: x is not None, constraints)
-        try:
-            params = ['python', '-m', 'sandbox.env', 'cmd=' + str(cmd)] + constraints
-            return subprocess.check_output(params, stderr=STDOUT)
-        except subprocess.CalledProcessError as e:
-            return "ERROR"
+        params = ['python', '-m', 'sandbox.env', 'cmd=' + str(cmd)] + constraints
+        p = Popen(params, stdout=PIPE, stderr=PIPE)
+        output, error = p.communicate()
+
+        if p.returncode == -11:
+            raise OutOfMemoryException()
+
+        elif p.returncode == -24:
+            raise TimeoutException()
+
+        elif p.returncode != 0:
+            error = '' if error is None else error
+            raise ProcessErrorException(
+                'Process ended with an error code: ' + str(p.returncode) + '\nERROR:\n' + error)
+        return output

@@ -28,10 +28,10 @@ class Sandbox:
         return 'file=' + str(self.file) if self.file is not None else None
 
     def __get_mem_config(self):
-        return 'mem=' + str(self.mem) if self.file is not None else None
+        return 'mem=' + str(self.mem) if self.mem is not None else None
 
     def __get_cpu_config(self):
-        return 'cpu=' + str(self.cpu) if self.file is not None else None
+        return 'cpu=' + str(self.cpu) if self.cpu is not None else None
 
     '''
         Get the output of the executable by running in the sandbox environment.

@@ -1,16 +1,8 @@
 import resource
 import sys
 import os
-
-
-class InsufficientInputException(Exception):
-    def __init__(self):
-        Exception.__init__(self, 'Please supply the cmd attribute')
-
-
-class UnknownArgException(Exception):
-    def __init__(self, arg):
-        Exception.__init__(self, 'Unknown argument -> ' + arg)
+from flags import *
+from .exceptions import *
 
 
 def set_proc_limit(limit):
@@ -47,25 +39,47 @@ resource_mappings = {
 }
 
 
-def execute(command):
+def execv(command):
     if isinstance(command, list):
         os.execv(command[0], command)
     else:
         os.execv(command, [command])
 
 
+def execp(command):
+    if isinstance(command, list):
+        os.execvp(command[0], command)
+    else:
+        os.execvp(command, [command])
+
+
 if __name__ == '__main__':
     command = None
+    flags = []
+
     for arg in sys.argv[1:]:
         arg_split = arg.split('=')
-        key = arg_split[0]
-        value = arg_split[1]
-        if key == 'cmd':
-            command = value
-            continue
-        if key not in resource_mappings:
-            raise UnknownArgException(key)
-        resource_mappings[key](value)
+
+        if len(arg_split) == 1:
+            flag = arg_split[0].strip()
+            if flag in FLAGS:
+                flags.append(flag)
+        else:
+            key, value = arg_split[0], arg_split[1]
+
+            if key == 'cmd':
+                command = value.split()
+
+            elif key in resource_mappings:
+                resource_mappings[key](value)
+
+            else:
+                raise UnknownArgException(key)
+
     if command is None:
         raise InsufficientInputException()
-    execute(command)
+
+    if EXECVP_FLAG in flags:
+        execp(command)
+    else:
+        execv(command)

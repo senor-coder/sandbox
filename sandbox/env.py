@@ -24,7 +24,6 @@ def set_mem_limit(limit):
     limit = int(limit)
     resource.setrlimit(resource.RLIMIT_DATA, (limit, limit))
     resource.setrlimit(resource.RLIMIT_STACK, (limit, limit))
-    resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
 
 
 resource_mappings = {
